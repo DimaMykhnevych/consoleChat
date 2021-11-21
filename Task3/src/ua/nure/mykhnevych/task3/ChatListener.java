@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class ChatListener extends Thread {
-    private Socket socket;
+    public Socket socket;
     public PrintWriter out;
     private BufferedReader in;
     private static final String SECRET_HASH = "098f6bcd";
+    public static final Logger logger = Logger.getLogger(
+            ChatListener.class.getName());
 
     public ChatListener(Socket socket) throws IOException {
         this.socket = socket;
@@ -26,7 +29,7 @@ public class ChatListener extends Thread {
                 str = in.readLine();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("Chat socket was closed");
         }
     }
 

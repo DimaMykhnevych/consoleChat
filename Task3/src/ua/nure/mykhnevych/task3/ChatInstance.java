@@ -15,6 +15,7 @@ public class ChatInstance {
     private int port;
     public String clientUsername;
     private static final String SECRET_HASH = "098f6bcd";
+    private boolean shouldShutDown = false;
 
     public ChatInstance(String hostName, int port, String clientUsername) {
         this.hostName = hostName;
@@ -25,13 +26,13 @@ public class ChatInstance {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-            while (true) {
+            while (!shouldShutDown) {
                 String str = in.readLine();
-                if(checkForExit(str)){
+                if (checkForExit(str)) {
                     out.println("exit");
                     break;
                 }
-                if(shouldOutputMessage(str)){
+                if (shouldOutputMessage(str)) {
                     System.out.println(str);
                 }
             }
@@ -42,7 +43,11 @@ public class ChatInstance {
         }
     }
 
-    private boolean shouldOutputMessage(String line){
+    private boolean shouldOutputMessage(String line) {
+        if (line == null) {
+            shouldShutDown = true;
+            return false;
+        }
         String[] splited = line.split(":");
         if (splited.length == 2 && splited[0].equals(SECRET_HASH)) {
             return false;
@@ -51,6 +56,10 @@ public class ChatInstance {
     }
 
     private boolean checkForExit(String line) {
+        if (line == null) {
+            shouldShutDown = true;
+            return false;
+        }
         String[] splited = line.split(":");
         if (splited.length != 2) {
             return false;

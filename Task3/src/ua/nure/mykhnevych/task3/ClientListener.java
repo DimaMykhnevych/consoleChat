@@ -7,15 +7,18 @@ import java.io.*;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class ClientListener extends Thread {
-    private Socket socket;
+    public Socket socket;
     private LinkedList<ChatListener> chats;
     private PrintWriter out;
     private BufferedReader in;
     private boolean isLoggedIn;
     private static final String PATH_TO_CREDENTIALS = "users.properties";
     private String username;
+    public static final Logger logger = Logger.getLogger(
+            ClientListener.class.getName());
 
     public ClientListener(Socket socket, LinkedList<ChatListener> chats) throws IOException {
         this.socket = socket;
@@ -35,9 +38,10 @@ public class ClientListener extends Thread {
                 response.isAuthenticated = authenticated;
                 out.println(SerializationHelper.serializeObject(response));
             }
+            logger.info(username + " successfully authorized");
             startChat();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info("Socket for client " +username + " was closed");
         }
     }
 
@@ -49,15 +53,17 @@ public class ClientListener extends Thread {
                 info = in.readLine();
                 if (info.equals("exit")) {
                     onClientExit();
+                    logger.info(username + " exited chat");
                     break;
                 }
                 for (ChatListener chat : chats) {
                     chat.sendMessage(username + ": " + info);
                 }
+                logger.info("Sending following info to the chats: " + info);
                 out.println();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info("Socket for client " +username + " was closed");
         }
     }
 
@@ -70,6 +76,7 @@ public class ClientListener extends Thread {
     }
 
     private void openChatForClient() {
+        logger.info("Opening chat for client " + username);
         try {
             Runtime.getRuntime().exec(
                     new String[]
@@ -77,7 +84,7 @@ public class ClientListener extends Thread {
                                     username
                             });
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning("Failed to open chat for " + username);
         }
     }
 
@@ -99,9 +106,9 @@ public class ClientListener extends Thread {
             }
             return false;
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.warning("File with user credentials wasn't found");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info("Socket for client " +username + " was closed");
         }
         return false;
     }
