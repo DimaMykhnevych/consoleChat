@@ -1,0 +1,1 @@
+DEL ua\nure\mykhnevych\task3\*.class
